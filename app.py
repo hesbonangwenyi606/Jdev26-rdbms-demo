@@ -6,50 +6,22 @@ app = Flask(__name__)
 db = Database()
 
 # Create demo table
-db.create_table("users", ["id", "name"], primary_key="id")
+db.create_table("users", ["id", "name"], [int, str], primary_key="id")
 
-# HTML template with dynamic JS and centered layout
+# HTML template with JavaScript for dynamic updates
 HTML = """
 <!DOCTYPE html>
 <html>
 <head>
     <title>RDBMS Web Demo</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: flex-start; 
-            min-height: 100vh; 
-            background-color: #f4f4f4;
-        }
-        h1, h2 { text-align: center; }
-        table { 
-            border-collapse: collapse; 
-            width: 50%; 
-            margin-bottom: 20px; 
-            background-color: white;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 50%; margin-bottom: 20px; }
         th, td { border: 1px solid #333; padding: 8px; text-align: left; }
         th { background-color: #555; color: white; }
-        form { 
-            background-color: white; 
-            padding: 10px 15px; 
-            margin-bottom: 15px; 
-            border-radius: 5px; 
-            box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
-        }
         input[type=text], input[type=number] { padding: 5px; margin: 5px 0; }
         input[type=submit] { padding: 5px 10px; margin: 5px 0; }
-        .message { 
-            color: green; 
-            font-weight: bold; 
-            margin-bottom: 20px; 
-            text-align: center; 
-        }
+        .message { color: green; font-weight: bold; margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -86,7 +58,6 @@ HTML = """
     </form>
 
 <script>
-// Fetch users and render table
 function fetchUsers() {
     fetch('/api/users')
         .then(res => res.json())
@@ -101,7 +72,6 @@ function fetchUsers() {
         });
 }
 
-// Show messages for 3 seconds
 function showMessage(msg) {
     const el = document.getElementById("message");
     el.textContent = msg;
@@ -111,42 +81,45 @@ function showMessage(msg) {
 // Add user
 document.getElementById("add-form").addEventListener("submit", e => {
     e.preventDefault();
-    const data = new FormData(e.target);
+    const form = e.target;
+    const data = new FormData(form);
     fetch("/api/add", { method: "POST", body: data })
         .then(res => res.json())
-        .then(r => { showMessage(r.message); fetchUsers(); e.target.reset(); });
+        .then(r => { showMessage(r.message); fetchUsers(); form.reset(); });
 });
 
 // Update user
 document.getElementById("update-form").addEventListener("submit", e => {
     e.preventDefault();
-    const data = new FormData(e.target);
+    const form = e.target;
+    const data = new FormData(form);
     fetch("/api/update", { method: "POST", body: data })
         .then(res => res.json())
-        .then(r => { showMessage(r.message); fetchUsers(); e.target.reset(); });
+        .then(r => { showMessage(r.message); fetchUsers(); form.reset(); });
 });
 
 // Delete user
 document.getElementById("delete-form").addEventListener("submit", e => {
     e.preventDefault();
-    const data = new FormData(e.target);
+    const form = e.target;
+    const data = new FormData(form);
     fetch("/api/delete", { method: "POST", body: data })
         .then(res => res.json())
-        .then(r => { showMessage(r.message); fetchUsers(); e.target.reset(); });
+        .then(r => { showMessage(r.message); fetchUsers(); form.reset(); });
 });
 
-// Initial table load
+// Initial load
 fetchUsers();
 </script>
 </body>
 </html>
 """
 
-# --- Flask routes ---
 @app.route("/")
 def index():
     return render_template_string(HTML)
 
+# --- API Endpoints ---
 @app.route("/api/users")
 def api_users():
     table = db.get_table("users")
